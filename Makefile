@@ -3,7 +3,7 @@ OUT := ./float
 
 all: $(OUT)
 
-$(OUT): main.c
+$(OUT): emu.c
 	gcc -g $^ -o $@
 
 run: $(OUT)
