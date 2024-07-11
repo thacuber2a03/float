@@ -17,7 +17,7 @@ throws an exception if the addressing mode is **immediate**.
 ### `MRG` - Move from ReGister
 asm: `MRG <src> <dst>`
 
-moves from **register** `src` to `dst`.
+moves from register `src` to `dst`.
 throws an exception if the addressing mode is **immediate**.
 
 ### `MPT` - Move from PoinTer
@@ -28,28 +28,28 @@ throws an exception if the addressing mode is **immediate**.
 
 ## arithmetic operations
 
-### `ADD` - ADD to **register**
+### `ADD` - ADD to register
 asm: `ADD <src> <reg> <out>`
 
-adds `src` to the **register** pointed to by `reg` and stores in `out`.
+adds `src` to the register pointed to by `reg` and stores in `out`.
 
-### `SUB` - SUBtract from **register**
+### `SUB` - SUBtract from register
 asm: `SUB <src> <reg> <out>`
 
-subtracts `src` from the **register** pointed to by `reg` and stores in `out`.
+subtracts `src` from the register pointed to by `reg` and stores in `out`.
 
-### `MUL` - MULtiply with **register**
+### `MUL` - MULtiply with register
 asm: `MUL <src> <reg> <out>`
 
-multiplies `src` with the **register** pointed to by `reg` and stores in `out`.
+multiplies `src` with the register pointed to by `reg` and stores in `out`.
 
-### `DIV` - DIVide by **register**
+### `DIV` - DIVide by register
 asm: `DIV <src> <reg> <out>`
 
-divides `src` by the **register** pointed to by `reg` and stores in `out`.
+divides `src` by the register pointed to by `reg` and stores in `out`.
 throws an exception if reg is 0.
 
-### `REM` - get REMainder of division with **register**
+### `REM` - get REMainder of division with register
 asm: `REM <src> <reg> <out>`
 
 gets the remainder of the division between `src` and `reg`. stores in `out`.
