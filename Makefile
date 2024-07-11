@@ -1,10 +1,11 @@
+CFILES := fvm.c
 OUT := ./float
 .PHONY: all run clean test
 
 all: $(OUT)
 
-$(OUT): emu.c
-	gcc -g $^ -o $@
+$(OUT): $(CFILES) fvm.h
+	gcc -g $(CFILES) -o $@
 
 run: $(OUT)
 	./$(OUT) $(FILE)
