@@ -1,20 +1,21 @@
+OUT := ./float
 .PHONY: all run clean test
 
-all: float
+all: $(OUT)
 
-float: main.c
+$(OUT): main.c
 	gcc -g $^ -o $@
 
-run: float
-	./float $(FILE)
+run: $(OUT)
+	./$(OUT) $(FILE)
 
 clean:
-	rm ./float -f
+	rm ./$(OUT) -f
 
-debug: float
-	gf2 --args ./float test.rom
+debug: $(OUT)
+	gf2 --args ./$(OUT) test.rom
 
-makeTest: float
-	./float -
+makeTest: $(OUT)
+	./$(OUT) -
 
 test: makeTest debug
