@@ -26,6 +26,20 @@
 #define signature "float"
 #define dietext (signature " fatal error: ")
 
+typedef enum {
+    MODE_MEMORY = 0,
+    MODE_REGISTER,
+    MODE_IMMEDIATE,
+    MODE_INDIRECT,
+} AddrMode;
+
+union {
+    struct { uint16_t A, B, C, D; };
+    uint16_t arr[4];
+} regs;
+uint8_t mem[0xffff+1];
+uint8_t flags = 0;
+
 static void die(const char *msg)
 {
     size_t l = strlen(msg);
@@ -56,29 +70,29 @@ static uint16_t get_number(FILE* fp, int word)
     return c << 8 | read_byte(fp);
 }
 
+static inline uint16_t qualify_number(uint16_t num, AddrMode destMode)
+{
+    switch (destMode) {
+        case MODE_MEMORY: return mem[num];
+        case MODE_REGISTER: return regs.arr[num&3];
+        case MODE_IMMEDIATE: return num;
+        case MODE_INDIRECT: return mem[mem[num]];
+    }
+}
+
 static void interpret(FILE* fp)
 {
-    union { struct { uint16_t A, B, C, D; }; uint16_t arr[4]; } regs;
-
-    uint8_t mem[0xffff+1];
     memset(mem, 0, sizeof mem);
 
     for (;;)
     {
-#define IMM_MASK (1 << 0)
-#define PTR_MASK (1 << 1)
 #define WRD_MASK (1 << 2)
 #define get_num() get_number(fp, wrd)
-#define qual_num(n) (reg ? regs.arr[n&3] : imm ? n : mem[n])
 #define reg ptr
 
-        uint8_t raw = read_byte(fp);
-
-        uint8_t imm = raw & IMM_MASK,
-             ptr = raw & PTR_MASK,
-             wrd = raw & WRD_MASK;
-
-        uint8_t ins = (raw & ~(IMM_MASK | PTR_MASK | WRD_MASK)) >> 3;
+        uint8_t raw = read_byte(fp),
+                wrd = raw & WRD_MASK,
+                ins = raw & 0x3f;
 
         switch (ins)
         {
@@ -86,34 +100,34 @@ static void interpret(FILE* fp)
                 return;
 
             // FIXME: lotta repeated code :(
-            case 0x01: { // MOV
+            case 0x01: { // MMM
                 uint16_t num = get_num();
                 uint16_t addr = mem[get_num()];
-                mem[addr] = qual_num(num);
+                mem[addr] = qualify_number(num);
             } break;
 
             case 0x02: { // MRG
                 uint16_t a = get_num();
                 uint16_t *b = &regs.arr[get_num()&3];
-                *b = qual_num(a);
+                *b = qualify_number(a);
             } break;
 
             case 0x03: { // ADD
                 uint16_t a = get_num();
                 uint16_t *b = &regs.arr[get_num()&3];
-                *b += qual_num(a);
+                *b += qualify_number(a);
             }
 
             case 0x04: { // SUB
                 uint16_t a = get_num();
                 uint16_t *b = &regs.arr[get_num()&3];
-                *b -= qual_num(a);
+                *b -= qualify_number(a);
             }
 
             case 0x05: { // MUL
                 uint16_t a = get_num();
                 uint16_t *b = &regs.arr[get_num()&3];
-                *b *= qual_num(a);
+                *b *= qualify_number(a);
             }
 
             case 0x06: { // DIV
@@ -121,25 +135,25 @@ static void interpret(FILE* fp)
                 uint16_t *b = &regs.arr[get_num()&3];
                 // TODO: throw div zero exception
                 // throw any exception, actually
-                *b /= qual_num(a);
+                *b /= qualify_number(a);
             }
             
             case 0x07: { // AND
                 uint16_t a = get_num();
                 uint16_t *b = &regs.arr[get_num()&3];
-                *b &= qual_num(a);
+                *b &= qualify_number(a);
             }
 
             case 0x08: { // OR
                 uint16_t a = get_num();
                 uint16_t *b = &regs.arr[get_num()&3];
-                *b |= qual_num(a);
+                *b |= qualify_number(a);
             }
 
             case 0x09: { // XOR
                 uint16_t a = get_num();
                 uint16_t *b = &regs.arr[get_num()&3];
-                *b ^= qual_num(a);
+                *b ^= qualify_number(a);
             }
 
             case 0x0a: { // NOT
@@ -153,11 +167,8 @@ static void interpret(FILE* fp)
                 break;
         }
 
-#undef IMM_MASK
-#undef PTR_MASK
 #undef WRD_MASK
 #undef get_num
-#undef qual_num
 #undef reg
     }
 }
