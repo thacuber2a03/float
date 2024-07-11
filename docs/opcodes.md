@@ -140,12 +140,12 @@ asm: `CZO`
 
 clears the `zero` flag.
 
-### `CNG` - Set NeGative
+### `CNG` - Clear NeGative
 asm: `CNG`
 
 clears the `negative` flag.
 
-### `COV` - Set OVerflow
+### `COV` - Clear OVerflow
 asm: `COV`
 
 clears the `overflow` flag.
