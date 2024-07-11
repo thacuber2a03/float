@@ -28,42 +28,43 @@
 
 static void die(const char *msg)
 {
-	size_t l = strlen(msg);
+    size_t l = strlen(msg);
 
-	char *buf = malloc(sizeof(dietext) + l + 1);
-	memcpy(buf, dietext, sizeof(dietext));
-	memcpy(buf + sizeof dietext, msg, l);
-	buf[sizeof dietext + l + 1] = 0;
+    char *buf = malloc(sizeof(dietext) + l + 1);
+    memcpy(buf, dietext, sizeof(dietext));
+    memcpy(buf + sizeof dietext, msg, l);
+    buf[sizeof dietext + l + 1] = 0;
 
-	perror(dietext);
-	free(buf);
+    perror(dietext);
+    free(buf);
 
-	exit(-1);
+    exit(-1);
 }
 
-static char read_char(FILE* fp)
+static uint8_t read_byte(FILE* fp)
 {
-	char c;
-	if (fread(&c, 1, 1, fp) != 1) die("couldn't read next char");
-	return c;
+    uint8_t c;
+    if (fread(&c, sizeof c, 1, fp) != 1)
+        die("couldn't read next byte from file");
+    return c;
 }
 
-static short get_number(FILE* fp, int word)
+static uint16_t get_number(FILE* fp, int word)
 {
-	char c = read_char(fp);
-	if (!word) return c;
-	return c << 8 | read_char(fp);
+    uint8_t c = read_byte(fp);
+    if (!word) return c;
+    return c << 8 | read_byte(fp);
 }
 
 static void interpret(FILE* fp)
 {
-	union { struct { short A, B, C, D; }; short arr[4]; } regs;
+    union { struct { uint16_t A, B, C, D; }; uint16_t arr[4]; } regs;
 
-	char mem[0xffff+1];
-	memset(mem, 0, sizeof mem);
+    uint8_t mem[0xffff+1];
+    memset(mem, 0, sizeof mem);
 
-	for (;;)
-	{
+    for (;;)
+    {
 #define IMM_MASK (1 << 0)
 #define PTR_MASK (1 << 1)
 #define WRD_MASK (1 << 2)
@@ -71,86 +72,86 @@ static void interpret(FILE* fp)
 #define qual_num(n) (reg ? regs.arr[n&3] : imm ? n : mem[n])
 #define reg ptr
 
-		char raw = read_char(fp);
+        uint8_t raw = read_byte(fp);
 
-		char imm = raw & IMM_MASK,
-		     ptr = raw & PTR_MASK,
-		     wrd = raw & WRD_MASK;
+        uint8_t imm = raw & IMM_MASK,
+             ptr = raw & PTR_MASK,
+             wrd = raw & WRD_MASK;
 
-		char ins = (raw & ~(IMM_MASK | PTR_MASK | WRD_MASK)) >> 3;
+        uint8_t ins = (raw & ~(IMM_MASK | PTR_MASK | WRD_MASK)) >> 3;
 
-		switch (ins)
-		{
-			case 0x00: // BRK
-				return;
+        switch (ins)
+        {
+            case 0x00: // BRK
+                return;
 
-			// FIXME: lotta repeated code :(
-			case 0x01: { // MOV
-				short num = get_num();
-				short addr = mem[get_num()];
-				mem[addr] = qual_num(num);
-			} break;
+            // FIXME: lotta repeated code :(
+            case 0x01: { // MOV
+                uint16_t num = get_num();
+                uint16_t addr = mem[get_num()];
+                mem[addr] = qual_num(num);
+            } break;
 
-			case 0x02: { // MRG
-				short a = get_num();
-				short *b = &regs.arr[get_num()&3];
-				*b = qual_num(a);
-			} break;
+            case 0x02: { // MRG
+                uint16_t a = get_num();
+                uint16_t *b = &regs.arr[get_num()&3];
+                *b = qual_num(a);
+            } break;
 
-			case 0x03: { // ADD
-				short a = get_num();
-				short *b = &regs.arr[get_num()&3];
-				*b += qual_num(a);
-			}
+            case 0x03: { // ADD
+                uint16_t a = get_num();
+                uint16_t *b = &regs.arr[get_num()&3];
+                *b += qual_num(a);
+            }
 
-			case 0x04: { // SUB
-				short a = get_num();
-				short *b = &regs.arr[get_num()&3];
-				*b -= qual_num(a);
-			}
+            case 0x04: { // SUB
+                uint16_t a = get_num();
+                uint16_t *b = &regs.arr[get_num()&3];
+                *b -= qual_num(a);
+            }
 
-			case 0x05: { // MUL
-				short a = get_num();
-				short *b = &regs.arr[get_num()&3];
-				*b *= qual_num(a);
-			}
+            case 0x05: { // MUL
+                uint16_t a = get_num();
+                uint16_t *b = &regs.arr[get_num()&3];
+                *b *= qual_num(a);
+            }
 
-			case 0x06: { // DIV
-				short a = get_num();
-				short *b = &regs.arr[get_num()&3];
-				// TODO: throw div zero exception
-				// throw any exception, actually
-				*b /= qual_num(a);
-			}
-			
-			case 0x07: { // AND
-				short a = get_num();
-				short *b = &regs.arr[get_num()&3];
-				*b &= qual_num(a);
-			}
+            case 0x06: { // DIV
+                uint16_t a = get_num();
+                uint16_t *b = &regs.arr[get_num()&3];
+                // TODO: throw div zero exception
+                // throw any exception, actually
+                *b /= qual_num(a);
+            }
+            
+            case 0x07: { // AND
+                uint16_t a = get_num();
+                uint16_t *b = &regs.arr[get_num()&3];
+                *b &= qual_num(a);
+            }
 
-			case 0x08: { // OR
-				short a = get_num();
-				short *b = &regs.arr[get_num()&3];
-				*b |= qual_num(a);
-			}
+            case 0x08: { // OR
+                uint16_t a = get_num();
+                uint16_t *b = &regs.arr[get_num()&3];
+                *b |= qual_num(a);
+            }
 
-			case 0x09: { // XOR
-				short a = get_num();
-				short *b = &regs.arr[get_num()&3];
-				*b ^= qual_num(a);
-			}
+            case 0x09: { // XOR
+                uint16_t a = get_num();
+                uint16_t *b = &regs.arr[get_num()&3];
+                *b ^= qual_num(a);
+            }
 
-			case 0x0a: { // NOT
-				short *b = &regs.arr[get_num()&3];
-				*b = ~*b;
-			}
+            case 0x0a: { // NOT
+                uint16_t *b = &regs.arr[get_num()&3];
+                *b = ~*b;
+            }
 
-			default:
-				fprintf(stderr, "unreachable\n");
-				exit(-1);
-				break;
-		}
+            default:
+                fprintf(stderr, "unreachable\n");
+                exit(-1);
+                break;
+        }
 
 #undef IMM_MASK
 #undef PTR_MASK
@@ -158,48 +159,50 @@ static void interpret(FILE* fp)
 #undef get_num
 #undef qual_num
 #undef reg
-	}
+    }
 }
 
 static void makeTestFile()
 {
-	FILE* fp = fopen("test.rom", "w+b");
-	if (!fp) die("couldn't emit test file");
+    FILE* fp = fopen("test.rom", "w+b");
+    if (!fp) die("couldn't emit test file");
 
-	char code[] = {
-		0x09, 0x01, 0x00, // MOV $0x01  0x00
-		0x0b, 0x01, 0x00, // MOV $0x01, [0x00]
-		0x00,             // BRK
-	};
+    uint8_t code[] = {
+        0x09, 0x01, 0x00, // MOV $0x01  0x00
+        0x0b, 0x01, 0x00, // MOV $0x01, [0x00]
+        0x00,             // BRK
+    };
 
-	if (!fwrite(code, 1, sizeof code, fp))
-	{
-		fclose(fp);
-		die("couldn't write to test file");
-	}
+    if (!fwrite(code, 1, sizeof code, fp))
+    {
+        fclose(fp);
+        die("couldn't write to test file");
+    }
 
-	fclose(fp);
+    fclose(fp);
 }
 
 int main(int argc, char* argv[])
 {
-	if (argc != 2)
-	{
-		fprintf(stderr, "usage: " signature " <file.rom>\n");
-		return -1;
-	}
-	
-	if (*argv[1] == '-')
-	{
-		makeTestFile();
-		fprintf(stderr, "test file made\n");
-		return 0;
-	}
+    if (argc != 2)
+    {
+        fprintf(stderr, "usage: " signature " <file.rom>\n");
+        return -1;
+    }
+    
+    if (*argv[1] == '-')
+    {
+        makeTestFile();
+        fprintf(stderr, "test file made\n");
+        return 0;
+    }
 
-	FILE* fp = fopen(argv[1], "rb");
-	if (!fp) die("couldn't open rom file");
+    FILE* fp = fopen(argv[1], "rb");
+    if (!fp) die("couldn't open rom file");
 
-	interpret(fp);
+    interpret(fp);
 
-	return 0;
+    return 0;
 }
+
+// vim: ts=4 sw=4 et
