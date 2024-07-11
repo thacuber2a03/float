@@ -18,14 +18,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "fvm.h"
 
+#define errorPrefix "float fatal error: "
+
 void fvm_init(float_VM *vm)
 {
 	vm->memory = malloc(UINT16_MAX);
+	assert(vm->memory && errorPrefix "vm->memory allocation failed");
 	vm->pc = vm->memory;
 	memset(vm->registers.arr, 0, sizeof vm->registers.arr);
 }
