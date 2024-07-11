@@ -169,3 +169,4 @@ sends a byte or a word to the device connected in port `dev`.
 asm: `DIN <dev> <out>`
 
 takes a byte or a word from device `dev` and places it in `out`.
+throws an exception if the addressing mode is **immediate**.
