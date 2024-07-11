@@ -24,7 +24,8 @@
 #include <stdint.h>
 
 #define signature "float"
-#define dietext signature " fatal error: "
+#define dietext (signature " fatal error: ")
+
 static void die(const char *msg)
 {
 	size_t l = strlen(msg);
@@ -83,6 +84,7 @@ static void interpret(FILE* fp)
 			case 0x00: // BRK
 				return;
 
+			// FIXME: lotta repeated code :(
 			case 0x01: { // MOV
 				short num = get_num();
 				short addr = mem[get_num()];
@@ -117,7 +119,31 @@ static void interpret(FILE* fp)
 				short a = get_num();
 				short *b = &regs.arr[get_num()&3];
 				// TODO: throw div zero exception
+				// throw any exception, actually
 				*b /= qual_num(a);
+			}
+			
+			case 0x07: { // AND
+				short a = get_num();
+				short *b = &regs.arr[get_num()&3];
+				*b &= qual_num(a);
+			}
+
+			case 0x08: { // OR
+				short a = get_num();
+				short *b = &regs.arr[get_num()&3];
+				*b |= qual_num(a);
+			}
+
+			case 0x09: { // XOR
+				short a = get_num();
+				short *b = &regs.arr[get_num()&3];
+				*b ^= qual_num(a);
+			}
+
+			case 0x0a: { // NOT
+				short *b = &regs.arr[get_num()&3];
+				*b = ~*b;
 			}
 
 			default:
