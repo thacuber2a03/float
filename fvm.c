@@ -28,10 +28,13 @@
 
 void fvm_init(float_VM *vm)
 {
-	vm->memory = malloc(UINT16_MAX);
+	memset(vm, 0, sizeof *vm);
+
+	vm->memory = malloc(UINT16_MAX * sizeof *vm->memory);
 	assert(vm->memory && errorPrefix "vm->memory allocation failed");
-	vm->pc = vm->memory;
-	memset(vm->registers.arr, 0, sizeof vm->registers.arr);
+
+	fvm_set_pc(vm, 0);
+	fvm_set_sp(vm, UINT16_MAX);
 }
 
 void fvm_destroy(float_VM *vm)
@@ -42,6 +45,5 @@ void fvm_destroy(float_VM *vm)
 		vm->memory = NULL;
 	}
 
-	vm->pc = NULL;
-	memset(vm->registers.arr, 0, sizeof vm->registers.arr);
+	memset(vm, 0, sizeof *vm);
 }
