@@ -34,8 +34,7 @@
 #endif
 
 typedef enum {
-	FVM_OP_BRK = 0, FVM_OP_LIM,
-	FVM_OP_MMM, FVM_OP_MRG, FVM_OP_MPT,
+	FVM_OP_BRK = 0, FVM_OP_MOV,
 	FVM_OP_ADD, FVM_OP_SUB, FVM_OP_MUL, FVM_OP_DIV, FVM_OP_REM,
 	FVM_OP_AND, FVM_OP_OR, FVM_OP_XOR, FVM_OP_NOT,
 	FVM_OP_JMP,
@@ -45,10 +44,10 @@ typedef enum {
 } float_Opcode;
 
 typedef enum {
-	FVM_ADDR_MEMORY = 0x00,
-	FVM_ADDR_REGISTER = 0x10,
-	FVM_ADDR_IMMEDIATE = 0x20,
-	FVM_ADDR_INDIRECT = 0x30,
+	FVM_ADDR_MEMORY    = 0x0,
+	FVM_ADDR_IMMEDIATE = 0x1,
+	FVM_ADDR_REGISTER  = 0x2,
+	FVM_ADDR_INDIRECT  = 0x3,
 } float_AddrMode;
 
 typedef enum {

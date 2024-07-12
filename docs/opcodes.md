@@ -1,32 +1,9 @@
 # instruction descriptions
 
-## memory management
+### `MOV` - MOVe
+asm: `MOV <src> <dst>`
 
-### `LIM` - Load **immediate**
-asm: `LIM <n> <dst>`
-
-moves the literal `n` to `dst`.
-throws an exception if the addressing mode is **immediate**.
-
-### `MMM` - Move from MeMory
-asm: `MMM <src> <dst>`
-
-moves from address `src` to `dst`.
-throws an exception if the addressing mode is **immediate**.
-
-### `MRG` - Move from ReGister
-asm: `MRG <src> <dst>`
-
-moves from register `src` to `dst`.
-throws an exception if the addressing mode is **immediate**.
-
-### `MPT` - Move from PoinTer
-asm: `MPT <src> <dst>`
-
-moves from pointer `src` to `dst`.
-throws an exception if the addressing mode is **immediate**.
-
-## arithmetic operations
+copies `src` onto `dst`.
 
 ### `ADD` - ADD to register
 asm: `ADD <src> <reg> <out>`

@@ -27,9 +27,12 @@
 #define errorPrefix "float fatal error: "
 
 enum {
-	VM_ADDR_MODE_MASK = 0xc0, // 0b11000000
-	VM_WORD_FLAG_MASK = 0x20, // 0b00100000
-	VM_INST_MASK      = 0x1f, // 0b00011111
+	VM_SRC_ADDR_MODE_MASK  = 0xc000, // 0b1100000000000000
+	VM_DST_ADDR_MODE_MASK  = 0x3000, // 0b0011000000000000
+	VM_INST_MASK           = 0x0fff, // 0b0000111111111111
+
+	VM_SRC_ADDR_MODE_SHIFT = 14,
+	VM_DST_ADDR_MODE_SHIFT = 12,
 };
 
 void fvm_init(float_VM *vm)
@@ -54,16 +57,50 @@ void fvm_destroy(float_VM *vm)
 	memset(vm, 0, sizeof *vm);
 }
 
+static uint16_t *get_register(float_VM *vm, uint8_t i)
+{
+	switch (i)
+	{
+	case 4: return vm->sp;
+	case 5: return (uint16_t*)&vm->flags;
+	default: return &vm->registers.arr[i & 3];
+	}
+}
+
+static uint16_t *addr_mode_loc(float_VM *vm, float_AddrMode am, uint16_t *s)
+{
+	switch (*s)
+	{
+	case FVM_ADDR_MEMORY:    return &vm->memory[*s];
+	case FVM_ADDR_IMMEDIATE: return s;
+	case FVM_ADDR_REGISTER:  return get_register(vm, *s);
+	case FVM_ADDR_INDIRECT:  return &vm->memory[vm->memory[*s]];
+	default:
+		assert(0 && "unreachable");
+		break;
+	}
+}
+
 float_StepResult fvm_step(float_VM* vm)
 {
-	uint8_t raw = *vm->pc++;
+	uint16_t raw = *vm->pc++;
+	uint16_t ins = raw & VM_INST_MASK;
 
-	int word = raw & VM_WORD_FLAG_MASK;
-	float_AddrMode addrMode = raw & VM_ADDR_MODE_MASK;
+	// quick exit
+	if (ins == FVM_OP_BRK) return FVM_STEP_HALT;
 
-	switch (raw & VM_INST_MASK)
+	float_AddrMode srcAMode = (raw & VM_SRC_ADDR_MODE_MASK) >> VM_SRC_ADDR_MODE_SHIFT;
+	float_AddrMode dstAMode = (raw & VM_DST_ADDR_MODE_MASK) >> VM_DST_ADDR_MODE_SHIFT;
+
+	uint16_t a, b;
+
+	switch (ins)
 	{
-	case FVM_OP_BRK: return FVM_STEP_HALT;
+	case FVM_OP_MOV: {
+		a = *vm->pc++;
+		b = *vm->pc++;
+		*addr_mode_loc(vm, srcAMode, &b) = *addr_mode_loc(vm, dstAMode, &a);
+	} break;
 
 	default:
 		assert(0 && "unreachable");
