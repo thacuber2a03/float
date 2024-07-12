@@ -1,10 +1,9 @@
 # Balloon assembly syntax
-(working name)
-
-> [!TODO]
-> should I introduce labels before opcode format?
+(working name and format)
 
 the common format for instructions is of the form `op [arg (, arg)*]`.
+
+labels are declared with `label <name>`, where `name` is an identifier composed of A-Z, a-z, 0-9 and _ (so the standard ASCII identifier letters basically)
 
 `op` is a case-insensitive mnemonic as specified by [docs/opcodes](docs/opcodes.md).
 
