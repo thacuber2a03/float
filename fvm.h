@@ -35,13 +35,34 @@
 
 typedef enum {
 	FVM_OP_BRK = 0,
+	FVM_OP_MMM, FVM_OP_MRG, FVM_OP_MPT,
+	FVM_OP_ADD, FVM_OP_SUB, FVM_OP_MUL, FVM_OP_DIV, FVM_OP_REM,
+	FVM_OP_AND, FVM_OP_OR, FVM_OP_XOR, FVM_OP_NOT,
+	FVM_OP_JMP,
+	FVM_OP_JEQ, FVM_OP_JNE, FVM_OP_JIN, FVM_OP_JNN, FVM_OP_JIO, FVM_OP_JNO,
+	FVM_OP_SZO, FVM_OP_SNG, FVM_OP_SOV, FVM_OP_CZO, FVM_OP_CNG, FVM_OP_COV,
+	FVM_OP_PSH, FVM_OP_POP, FVM_OP_DOT, FVM_OP_DIN,
 } float_Opcode;
+
+typedef enum {
+	FVM_ADDR_MEMORY = 0x00,
+	FVM_ADDR_REGISTER = 0x10,
+	FVM_ADDR_IMMEDIATE = 0x20,
+	FVM_ADDR_INDIRECT = 0x30,
+} float_AddrMode;
 
 typedef enum {
 	FVM_FLAG_ZERO     = (1 << 0),
 	FVM_FLAG_NEGATIVE = (1 << 1),
 	FVM_FLAG_OVERFLOW = (1 << 2),
 } float_VMFlags;
+
+typedef enum {
+	FVM_STEP_OK = 0,
+	FVM_STEP_HALT,
+	FVM_STEP_DIV_ZERO,
+	FVM_STEP_BAD_ADDRMODE,
+} float_StepResult;
 
 typedef struct {
 	union {
@@ -58,5 +79,7 @@ void fvm_destroy(float_VM *vm);
 
 static FORCE_INLINE void fvm_set_pc(float_VM *vm, uint16_t pc) { vm->pc = vm->memory + pc; }
 static FORCE_INLINE void fvm_set_sp(float_VM *vm, uint16_t sp) { vm->sp = vm->memory + sp; }
+
+float_StepResult fvm_step(float_VM* vm);
 
 #endif // FLOAT_VM

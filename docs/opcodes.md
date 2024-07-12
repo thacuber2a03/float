@@ -150,6 +150,8 @@ asm: `COV`
 
 clears the `overflow` flag.
 
+## other
+
 ### `PSH` - PuSH to stack
 asm: `PSH <src>`
 
@@ -170,3 +172,8 @@ asm: `DIN <dev> <out>`
 
 takes a byte or a word from device `dev` and places it in `out`.
 throws an exception if the addressing mode is **immediate**.
+
+### `BRK` - BReaK
+asm: `BRK`
+
+halts the VM.

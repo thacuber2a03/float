@@ -26,6 +26,12 @@
 
 #define errorPrefix "float fatal error: "
 
+enum {
+	VM_ADDR_MODE_MASK = 0xc0, // 0b11000000
+	VM_WORD_FLAG_MASK = 0x20, // 0b00100000
+	VM_INST_MASK      = 0x1f, // 0b00011111
+};
+
 void fvm_init(float_VM *vm)
 {
 	memset(vm, 0, sizeof *vm);
@@ -46,4 +52,23 @@ void fvm_destroy(float_VM *vm)
 	}
 
 	memset(vm, 0, sizeof *vm);
+}
+
+float_StepResult fvm_step(float_VM* vm)
+{
+	uint8_t raw = *vm->pc++;
+
+	int word = raw & VM_WORD_FLAG_MASK;
+	float_AddrMode addrMode = raw & VM_ADDR_MODE_MASK;
+
+	switch (raw & VM_INST_MASK)
+	{
+	case FVM_OP_BRK: return FVM_STEP_HALT;
+
+	default:
+		assert(0 && "unreachable");
+		break;
+	}
+
+	return FVM_STEP_OK;
 }
