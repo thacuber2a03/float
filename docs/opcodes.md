@@ -59,43 +59,25 @@ calculates the bitwise negation of `reg` and stores it in `out`.
 asm: `JMP <loc>`
 
 jumps unconditionally to `loc`.
-throws an exception if the addressing mode is **register**.
+throws an exception if the dest. addr. mode is **register**.
 
 ### `JEQ` - Jump if EQual
 asm: `JEQ <loc>`
 
 jumps to `loc` if the `zero` flag is set.
-throws an exception if the addressing mode is **register**.
-
-### `JNE` - Jump if Not Equal
-asm: `JNE <loc>`
-
-jumps to `loc` if the `zero` flag is unset.
-throws an exception if the addressing mode is **register**.
+throws an exception if the dest. addr. mode is **register**.
 
 ### `JIN` - Jump If Negative
 asm: `JIN <loc>`
 
 jumps to `loc` if the `negative` flag is set.
-throws an exception if the addressing mode is **register**.
-
-### `JNN` - Jump if Not Negative
-asm: `JNN <loc>`
-
-jumps to `loc` if the `negative` flag is unset.
-throws an exception if the addressing mode is **register**.
+throws an exception if the dest. addr. mode is **register**.
 
 ### `JIO` - Jump If Overflow
 asm: `JIO <loc>`
 
 jumps to `loc` if the `overflow` flag is set.
-throws an exception if the addressing mode is **register**.
-
-### `JNO` - Jump if No Overflow
-asm: `JNO <loc>`
-
-jumps to `loc` if the `overflow` flag is unset.
-throws an exception if the addressing mode is **register**.
+throws an exception if the dest. addr. mode is **register**.
 
 ### `XFL` - eXchange FLags
 asm `XFL <reg>`
@@ -103,11 +85,6 @@ asm `XFL <reg>`
 exchanges the flags register with the contents of register `reg`.
 
 ## other
-
-### `CAL` - CALl subroutine
-asm: `CAL <loc>`
-
-pushes the address of the next instruction into the stack and jumps to `loc`.
 
 ### `DOT` - Device OuT
 asm: `DOT <src> <dev>`
@@ -118,7 +95,7 @@ sends a byte or a word to the device connected in port `dev`.
 asm: `DIN <dev> <out>`
 
 takes a byte or a word from device `dev` and places it in `out`.
-throws an exception if the addressing mode is **immediate**.
+throws an exception if the dest. addr. mode is **immediate**.
 
 ### `BRK` - BReaK
 asm: `BRK`

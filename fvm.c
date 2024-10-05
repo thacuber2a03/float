@@ -24,7 +24,9 @@
 
 #include "fvm.h"
 
-#define errorPrefix "float fatal error: "
+#ifdef FVM_DUMP_ON_EXCEPTION
+#include <stdio.h>
+#endif
 
 enum {
 	VM_SRC_ADDR_MODE_MASK  = 0xc000, // 0b1100000000000000
@@ -34,6 +36,8 @@ enum {
 	VM_SRC_ADDR_MODE_SHIFT = 14,
 	VM_DST_ADDR_MODE_SHIFT = 12,
 };
+
+#define errorPrefix "float fatal error: "
 
 void fvm_init(float_VM *vm)
 {
@@ -57,23 +61,28 @@ void fvm_destroy(float_VM *vm)
 	memset(vm, 0, sizeof *vm);
 }
 
-static uint16_t *get_register(float_VM *vm, uint8_t i)
+static uint16_t *get_register(float_VM *vm, uint8_t i, int assign)
 {
 	switch (i)
 	{
-	case 4: return vm->sp;
+	case 4: {
+		uint16_t *sp = vm->sp;
+		if (assign) vm->sp--;
+		return sp;
+	}
 	case 5: return (uint16_t*)&vm->flags;
 	default: return &vm->registers.arr[i & 3];
 	}
 }
 
-static uint16_t *addr_mode_loc(float_VM *vm, float_AddrMode am, uint16_t *s)
+static uint16_t *addr_mode_loc(float_VM *vm,
+                               float_AddrMode am, uint16_t *s, int assign)
 {
 	switch (*s)
 	{
 	case FVM_ADDR_MEMORY:    return &vm->memory[*s];
 	case FVM_ADDR_IMMEDIATE: return s;
-	case FVM_ADDR_REGISTER:  return get_register(vm, *s);
+	case FVM_ADDR_REGISTER:  return get_register(vm, *s, assign);
 	case FVM_ADDR_INDIRECT:  return &vm->memory[vm->memory[*s]];
 	default:
 		assert(0 && "unreachable");
@@ -81,9 +90,12 @@ static uint16_t *addr_mode_loc(float_VM *vm, float_AddrMode am, uint16_t *s)
 	}
 }
 
+#define nextShort(vm) (*(vm)->pc++)
+
 float_StepResult fvm_step(float_VM* vm)
 {
-	uint16_t raw = *vm->pc++;
+	uint16_t *oldPc = vm->pc;
+	uint16_t raw = nextShort(vm);
 	uint16_t ins = raw & VM_INST_MASK;
 
 	// quick exit
@@ -92,15 +104,22 @@ float_StepResult fvm_step(float_VM* vm)
 	float_AddrMode srcAMode = (raw & VM_SRC_ADDR_MODE_MASK) >> VM_SRC_ADDR_MODE_SHIFT;
 	float_AddrMode dstAMode = (raw & VM_DST_ADDR_MODE_MASK) >> VM_DST_ADDR_MODE_SHIFT;
 
-	uint16_t a, b;
+	uint16_t a, b, out;
 
 	switch (ins)
 	{
-	case FVM_OP_MOV: {
-		a = *vm->pc++;
-		b = *vm->pc++;
-		*addr_mode_loc(vm, srcAMode, &b) = *addr_mode_loc(vm, dstAMode, &a);
-	} break;
+	case FVM_OP_MOV:
+		a = nextShort(vm), b = nextShort(vm);
+
+		if (dstAMode == FVM_ADDR_IMMEDIATE)
+			return fvm_except(vm, FVM_STEP_BAD_ADDRMODE, oldPc, ins);
+
+		*addr_mode_loc(vm, srcAMode, &b, 1) = *addr_mode_loc(vm, dstAMode, &a, 0);
+		break;
+
+	case FVM_OP_ADD:
+		
+		break;
 
 	default:
 		assert(0 && "unreachable");
@@ -108,4 +127,32 @@ float_StepResult fvm_step(float_VM* vm)
 	}
 
 	return FVM_STEP_OK;
+}
+
+float_StepResult fvm_except(float_VM *vm, float_StepResult except,
+			    uint16_t *loc, uint16_t extraInfo)
+{
+	if (vm->handler!= NULL)
+	{
+		vm->handler(vm, except, loc, extraInfo);
+	}
+
+#ifdef FVM_DUMP_ON_EXCEPTION
+	fprintf(stderr, "vm(%p) exception:\n", vm);
+	switch (except) {
+	case FVM_STEP_OK: fprintf(stderr, "no exception"); break;
+	case FVM_STEP_HALT: fprintf(stderr, "machine halt"); break;
+	case FVM_STEP_DIV_ZERO:
+		fprintf(stderr, "division by zero");
+		break;
+	case FVM_STEP_BAD_ADDRMODE:
+		fprintf(stderr, "bad addressing mode");
+		break;
+	}
+	fprintf(stderr, "\nat 0x%04x", (uint16_t)(vm->pc - vm->memory));
+	fprintf(stderr, "\nregisters:\nA\t0x%04x\tB\t0x%04x\n", vm->registers.A, vm->registers.B);
+	fprintf(stderr, "C\t0x%04x\tD\t0x%04x\n", vm->registers.C, vm->registers.D);
+#endif
+
+	return except;
 }

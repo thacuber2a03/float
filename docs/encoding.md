@@ -6,8 +6,8 @@ each instruction can have a variable amount of parameters.
 
 ## format
 ```
-| f e d c b a 9 8 7 6 5 4 3 2 1 0 |
-| s s d d o o o o o o o o o o o o |
+| 7 6 5 4 3 2 1 0 |
+| s d o o o o o o |
 ```
 where
 - `s` is the source addressing mode
@@ -18,6 +18,6 @@ where
 |   name    |               description               | implementation |
 | :-------: | :-------------------------------------: | :------------: |
 |  memory   | operand represents an address in memory |   `mem[op]`    |
-| register  |      operand represents a register      |   `regs[op]`   |
 | immediate |       operand is taken literally        |      `op`      |
-| indirect  | operand refers to an address in memory  | `mem[mem[op]]` |
+<!--| register  |      operand represents a register      |   `regs[op]`   |-->
+<!--| indirect  | operand refers to an address in memory  | `mem[mem[op]]` |-->
