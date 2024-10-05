@@ -97,47 +97,17 @@ asm: `JNO <loc>`
 jumps to `loc` if the `overflow` flag is unset.
 throws an exception if the addressing mode is **register**.
 
-### `SZO` - Set ZerO
-asm: `SZO`
+### `XFL` - eXchange FLags
+asm `XFL <reg>`
 
-sets the `zero` flag.
-
-### `SNG` - Set Negative
-asm: `SNG`
-
-sets the `negative` flag.
-
-### `SOV` - Set OVerflow
-asm: `SOV`
-
-sets the `overflow` flag.
-
-### `CZO` - Clear ZerO
-asm: `CZO`
-
-clears the `zero` flag.
-
-### `CNG` - Clear NeGative
-asm: `CNG`
-
-clears the `negative` flag.
-
-### `COV` - Clear OVerflow
-asm: `COV`
-
-clears the `overflow` flag.
+exchanges the flags register with the contents of register `reg`.
 
 ## other
 
-### `PSH` - PuSH to stack
-asm: `PSH <src>`
+### `CAL` - CALl subroutine
+asm: `CAL <loc>`
 
-pushes `src` into the stack.
-
-### `POP` - POP from stack
-asm: `POP <out>`
-
-pops from the stack and into `out`.
+pushes the address of the next instruction into the stack and jumps to `loc`.
 
 ### `DOT` - Device OuT
 asm: `DOT <src> <dev>`
